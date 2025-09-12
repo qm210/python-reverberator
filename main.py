@@ -38,7 +38,8 @@ def print_device_info():
 def load_and_reverberate(filename: str, params: Params) -> Wave:
     print("Loading", filename)
     wave = Wave(filename)
-    wave.extend_by_factor(2)
+    if params.output_seconds is not None:
+        wave.extend_to(params.output_seconds)
     print("Wave has values in", wave.original_range)
     reverberator = Reverberator(params, wave.samplerate)
     print("Hello Reverberator.", params)
@@ -59,6 +60,7 @@ if __name__ == "__main__":
         n_echoes = 1000,
         gain = 0.85,
         use_mt19937=False,
+        output_seconds=10,
     )
     sample = load_and_reverberate(input_file, some_params)
     sample.write("output.wav")

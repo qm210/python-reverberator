@@ -28,6 +28,7 @@ class Params:
     loop_seconds: float = 1.0
     n_echoes: int = 1000
     use_mt19937: bool = False
+    output_seconds: Optional[float] = None
 
 
 class Reverberator:
@@ -40,6 +41,7 @@ class Reverberator:
 
     # derived params
     rt60_position: float
+    echo_spacing: int
     loop_samples: int
     overall_gain: float
     feedback_gain: float
@@ -53,17 +55,12 @@ class Reverberator:
         self._params = params
         self.rt60_position = self.samplerate * params.rt60_seconds
 
-        echo_spacing = int(samplerate * params.loop_seconds / params.n_echoes)
-        self.loop_samples = echo_spacing * params.n_echoes
+        self.echo_spacing = int(samplerate * params.loop_seconds / params.n_echoes)
+        self.loop_samples = self.echo_spacing * params.n_echoes
 
-        rng = Pseudorandom(use_mt19937=params.use_mt19937)
-        self.echoes = [
-            Echo(
-                pos=step * echo_spacing + rng.random_int(step, 1, echo_spacing),
-                sign=rng.random_sign(step)
-            ).amplitude_by(self.evaluate_decay)
-            for step in range(params.n_echoes)
-        ]
+        self.echoes = [Echo() for _ in range(params.n_echoes)]
+        self.recalc_echoes()
+
         self.overall_gain = params.gain * 90. / params.n_echoes
         self.feedback_gain = self.evaluate_decay(self.loop_samples)
 
@@ -71,6 +68,13 @@ class Reverberator:
         self.pos_fb = self.loop_samples
         self.data = []
         self.output = None
+
+    def recalc_echoes(self):
+        rng = Pseudorandom(use_mt19937=self._params.use_mt19937)
+        for i, echo in enumerate(self.echoes):
+            echo.pos = i * self.echo_spacing + rng.random_int(1, self.echo_spacing)
+            echo.sign = rng.random_sign()
+            echo.amplitude_by(self.evaluate_decay)
 
     def evaluate_decay(self, sample: int) -> float:
         # (0.001) ^ (sample/rt60) = 10^(-3 * sample/rt60)

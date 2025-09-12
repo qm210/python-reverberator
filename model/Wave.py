@@ -42,8 +42,8 @@ class Wave:
     def write(self, filename: str):
         sf.write(filename, self.data, self.samplerate)
 
-    def extend_by_factor(self, factor: float):
-        new_frames = int(self.frames * factor)
+    def extend_to(self, seconds: float):
+        new_frames = int(seconds * self.samplerate)
         if self.is_mono:
             resized = np.zeros(new_frames,
                                dtype=self.data.dtype)
