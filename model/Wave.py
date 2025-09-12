@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Tuple
 
 import numpy as np
 import soundfile as sf
@@ -13,12 +13,14 @@ class Wave:
     data: npt.NDArray[np.float32]
     samplerate: int
     channels: int
+    original_range: Tuple[float, float]
 
     def __init__(self, filename: str):
         self.filename = filename
         self.original, self.samplerate = \
             sf.read(filename, dtype="float32")
         self.channels = self.read_channels(self.original)
+        self.original_range = np.min(self.original), np.max(self.original)
         self.data = np.copy(self.original)
 
     @property
@@ -41,6 +43,9 @@ class Wave:
 
     def as_int16_array(self) -> npt.NDArray[np.int16]:
         return np.clip(self.data * 32767, -32768, 32767).astype(np.int16)
+
+    def zeros(self):
+        return np.zeros_like(self.data)
 
     @staticmethod
     def read_channels(nparray: npt.NDArray[Any]):

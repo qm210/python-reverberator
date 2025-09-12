@@ -39,6 +39,7 @@ def load_and_reverberate(filename: str, params: Params) -> Wave:
     print("Loading", filename)
     wave = Wave(filename)
     wave.extend_by_factor(2)
+    print("Wave has values in", wave.original_range)
     reverberator = Reverberator(params, wave.samplerate)
     print("Hello Reverberator.", params)
     reverberator.apply(wave)
@@ -48,10 +49,10 @@ def load_and_reverberate(filename: str, params: Params) -> Wave:
 if __name__ == "__main__":
     print_device_info()
     input_file = "gnhnhahahaha.wav."
-    params = Params(rt60_seconds = 2.10,
+    some_params = Params(rt60_seconds = 2.10,
                     mix_amount = 0.5,
                     loop_seconds = 1.0,
                     n_echoes = 10)
-    wave = load_and_reverberate(input_file, params)
-    play(wave)
+    the_wave = load_and_reverberate(input_file, some_params)
+    play(the_wave)
     print("Wirsing.")

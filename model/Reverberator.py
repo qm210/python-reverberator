@@ -1,8 +1,9 @@
 import numpy as np
+import numpy.typing as npt
 import math
 
 from dataclasses import dataclass
-from typing import List, Self, Callable
+from typing import List, Self, Callable, Optional
 
 from model.Wave import Wave
 from model.pseudorandom import random_sign, random_int
@@ -30,6 +31,7 @@ class Echo:
 class Params:
     rt60_seconds: float
     mix_amount: float = 0.5
+    gain: float = 1.0
     loop_seconds: float = 1.0
     n_echoes: int = 1000
 
@@ -39,6 +41,7 @@ class Reverberator:
     pos_read: int
     pos_fb: int
     data: List[float]
+    output: Optional[npt.NDArray[np.float32]]
     echoes: List[Echo]
 
     # derived params
@@ -46,7 +49,7 @@ class Reverberator:
     echo_spacing: int
     loop_samples: int
     loop_capacity: int
-    n_echoes: int
+    feedback_gain: float
 
     # reference
     _samplerate: int
@@ -63,17 +66,37 @@ class Reverberator:
                 .evaluated(self.evaluate_decay)
             for step in range(params.n_echoes)
         ]
+        self.feedback_gain = self.evaluate_decay(self.loop_samples)
 
         self.pos_read = 0
         self.pos_fb = self.loop_samples
         self.data = [0 for _ in range(2 * self.loop_samples)]
+        self.output = None
 
     def evaluate_decay(self, sample: int) -> float:
         # (0.001) ^ (sample/rt60) = 10^(-3 * sample/rt60)
         return math.exp(-3 * sample/self.rt60_position * math.log(10))
 
     def apply(self, wave: Wave):
-        # first, a simple amp
-        gain = 1.0
-        wave.data *= gain
-        wave.data = np.clip(gain * wave.data, -1., 1.)
+        # wave.data = np.clip(gain * wave.data, -1., 1.)
+        overall_gain = self._params.gain
+        size = len(self.data)
+        for echo in self.echoes:
+            gain = echo.amplitude * overall_gain
+            pos = (self.pos_read + echo.pos) % size
+
+            for input in wave.data:
+                self.data[pos] += gain * input
+                pos = (pos + 1) % size
+
+        self.output = wave.zeros()
+        for s in range(len(self.output)):
+            # move the data so we don't have it anymore
+            self.output[s] = self.data[self.pos_read]
+            self.data[self.pos_read] = 0
+            self.data[self.pos_fb] += self.output[s] * self.feedback_gain
+
+            self.pos_read = (self.pos_read + 1) % size
+            self.pos_fb = (self.pos_fb + 1) % size
+
+        wave.data = self.output
