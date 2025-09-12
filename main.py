@@ -4,6 +4,7 @@ from pprint import pprint
 import keyboard
 import simpleaudio as sa
 import sounddevice as sd
+import soundfile as sf
 
 from model.Reverberator import Reverberator, Params
 from model.Wave import Wave
@@ -53,6 +54,7 @@ if __name__ == "__main__":
                     mix_amount = 0.5,
                     loop_seconds = 1.0,
                     n_echoes = 10)
-    the_wave = load_and_reverberate(input_file, some_params)
-    play(the_wave)
+    sample = load_and_reverberate(input_file, some_params)
+    sample.write("output.wav")
+    play(sample)
     print("Wirsing.")

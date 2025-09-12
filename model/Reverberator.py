@@ -78,13 +78,15 @@ class Reverberator:
         return math.exp(-3 * sample/self.rt60_position * math.log(10))
 
     def apply(self, wave: Wave):
-        # wave.data = np.clip(gain * wave.data, -1., 1.)
+        if wave.channels != 1:
+            raise NotImplementedError("did only implement MONO for now")
+
         overall_gain = self._params.gain
         size = len(self.data)
+
         for echo in self.echoes:
             gain = echo.amplitude * overall_gain
             pos = (self.pos_read + echo.pos) % size
-
             for input in wave.data:
                 self.data[pos] += gain * input
                 pos = (pos + 1) % size

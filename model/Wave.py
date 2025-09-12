@@ -31,6 +31,9 @@ class Wave:
     def seconds(self):
         return round(self.frames / self.samplerate, 3)
 
+    def write(self, filename: str):
+        sf.write(filename, self.data, self.samplerate)
+
     def extend_by_factor(self, factor: float):
         new_frames = int(self.frames * factor)
         if self.channels == 1:
