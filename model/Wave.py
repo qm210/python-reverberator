@@ -29,6 +29,16 @@ class Wave:
     def seconds(self):
         return round(self.frames / self.samplerate, 3)
 
+    def extend_by_factor(self, factor: float):
+        new_frames = int(self.frames * factor)
+        if self.channels == 1:
+            resized = np.zeros(new_frames, dtype=self.data.dtype)
+            resized[:self.frames] = self.data
+        else:
+            resized = np.zeros((new_frames, self.channels), dtype=self.data.dtype)
+            resized[:self.frames, :] = self.data
+        self.data = resized
+
     def as_int16_array(self) -> npt.NDArray[np.int16]:
         return np.clip(self.data * 32767, -32768, 32767).astype(np.int16)
 

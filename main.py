@@ -1,21 +1,16 @@
 import time
+from pprint import pprint
 
 import keyboard
-import numpy as np
 import simpleaudio as sa
 import sounddevice as sd
 
-from Wave import Wave
-
-
-def apply_reverb(wave: Wave):
-    # first, a simple amp
-    gain = 1.0
-    wave.data *= gain
-    wave.data = np.clip(gain * wave.data, -1., 1.)
+from model.Reverberator import Reverberator, Params
+from model.Wave import Wave
 
 
 def play(wave: Wave):
+    print("Now play", wave.seconds, "seconds.")
     int_data = wave.as_int16_array()
     bytes_per_int16 = 2
     player = sa.play_buffer(int_data,
@@ -36,16 +31,27 @@ def play(wave: Wave):
 def print_device_info():
     default_out = sd.default.device[1]
     device_info = sd.query_devices(default_out)
-    print(default_out, device_info)
+    print("Sound Output Device:")
+    pprint(device_info)
+
+
+def load_and_reverberate(filename: str, params: Params) -> Wave:
+    print("Loading", filename)
+    wave = Wave(filename)
+    wave.extend_by_factor(2)
+    reverberator = Reverberator(params, wave.samplerate)
+    print("Hello Reverberator.", params)
+    reverberator.apply(wave)
+    return wave
 
 
 if __name__ == "__main__":
     print_device_info()
-    input = "gnhnhahahaha.wav"
-    print("Loading", input)
-    wave = Wave(input)
-    print("Hello Reverberator.")
-    apply_reverb(wave)
-    print("Now play seconds:", wave.seconds)
+    input_file = "gnhnhahahaha.wav."
+    params = Params(rt60_seconds = 2.10,
+                    mix_amount = 0.5,
+                    loop_seconds = 1.0,
+                    n_echoes = 10)
+    wave = load_and_reverberate(input_file, params)
     play(wave)
     print("Wirsing.")
