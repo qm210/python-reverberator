@@ -31,25 +31,36 @@ class Wave:
     def seconds(self):
         return round(self.frames / self.samplerate, 3)
 
+    @property
+    def is_mono(self):
+        return self.channels == 1
+
+    @staticmethod
+    def read_channels(nparray: npt.NDArray[Any]):
+        return 1 if nparray.ndim == 1 else nparray.shape[1]
+
     def write(self, filename: str):
         sf.write(filename, self.data, self.samplerate)
 
     def extend_by_factor(self, factor: float):
         new_frames = int(self.frames * factor)
-        if self.channels == 1:
-            resized = np.zeros(new_frames, dtype=self.data.dtype)
+        if self.is_mono:
+            resized = np.zeros(new_frames,
+                               dtype=self.data.dtype)
             resized[:self.frames] = self.data
         else:
-            resized = np.zeros((new_frames, self.channels), dtype=self.data.dtype)
+            resized = np.zeros((new_frames, self.channels),
+                               dtype=self.data.dtype)
             resized[:self.frames, :] = self.data
         self.data = resized
 
     def as_int16_array(self) -> npt.NDArray[np.int16]:
-        return np.clip(self.data * 32767, -32768, 32767).astype(np.int16)
+        return (np.clip(self.data * 32767, -32768, 32767)
+                .astype(np.int16))
 
-    def zeros(self):
-        return np.zeros_like(self.data)
-
-    @staticmethod
-    def read_channels(nparray: npt.NDArray[Any]):
-        return 1 if nparray.ndim == 1 else nparray.shape[1]
+    def zeros(self, length: int = None):
+        if length is None:
+            return np.zeros_like(self.data)
+        else:
+            return np.zeros((length,) + self.data.shape[1:],
+                            dtype=self.data.dtype)

@@ -4,7 +4,6 @@ from pprint import pprint
 import keyboard
 import simpleaudio as sa
 import sounddevice as sd
-import soundfile as sf
 
 from model.Reverberator import Reverberator, Params
 from model.Wave import Wave
@@ -43,17 +42,24 @@ def load_and_reverberate(filename: str, params: Params) -> Wave:
     print("Wave has values in", wave.original_range)
     reverberator = Reverberator(params, wave.samplerate)
     print("Hello Reverberator.", params)
+    t0 = time.perf_counter()
     reverberator.apply(wave)
+    t1 = time.perf_counter()
+    print(f"Took {t1-t0:.3f} seconds for a {wave.seconds} sec. sample.")
     return wave
 
 
 if __name__ == "__main__":
     print_device_info()
-    input_file = "gnhnhahahaha.wav."
-    some_params = Params(rt60_seconds = 2.10,
-                    mix_amount = 0.5,
-                    loop_seconds = 1.0,
-                    n_echoes = 10)
+    input_file = "shortdudel.wav."
+    some_params = Params(
+        rt60_seconds = 2.10,
+        mix_amount = 0.5,
+        loop_seconds = 1.0,
+        n_echoes = 1000,
+        gain = 0.85,
+        use_mt19937=False,
+    )
     sample = load_and_reverberate(input_file, some_params)
     sample.write("output.wav")
     play(sample)
