@@ -1,3 +1,4 @@
+import sys
 import time
 from pprint import pprint
 
@@ -52,17 +53,20 @@ def load_and_reverberate(filename: str, params: Params) -> Wave:
 
 if __name__ == "__main__":
     print_device_info()
-    input_file = "shortdudel.wav."
+    input_file = (sys.argv[1] if len(sys.argv) > 1
+                  else "gnhnhahahaha.wav")
+    output_file = (sys.argv[2] if len(sys.argv) > 2
+                  else "output.wav")
     some_params = Params(
         rt60_seconds = 2.10,
-        mix_amount = 0.5,
+        mix_amount = 0.7,
         loop_seconds = 1.0,
-        n_echoes = 1000,
+        n_echoes = 100,
         gain = 0.85,
         use_mt19937=False,
-        output_seconds=10,
+        output_seconds=3,
     )
     sample = load_and_reverberate(input_file, some_params)
-    sample.write("output.wav")
+    sample.write(output_file)
     play(sample)
     print("Wirsing.")
