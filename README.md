@@ -1,17 +1,21 @@
-## how to use
+## getting started
 
 Start with `uv` via
 ```
 uv run main.py -i <input.wav> [...params...]
 ```
-If you don't have `uv`, you can plainly call python
-```
-# linux
-./.venv/Scripts/python main.py shortdudel.wav bla.wav
+You can leave out all params, but then you have to listen to a stupid giggle.
 
-# windows
-.\.venv\Scripts\python.exe main.py shortdudel.wav bla.wav
-```
+If you don't have `uv` ([get it](https://astral.sh/blog/uv), or), you can try to workaround by
+* `python -m venv .venv`
+* Activating the virtual environment
+  * Linux: `source .venv/bin/activate`
+  * Windows: `.\.venv\Scripts\Activate.ps1 or .bat`
+* Installing the dependencies as listed in `pyproject.toml` with whatever you love
+* With still-activated venv: `python main.py [...params...]`
+  * (or `python.exe`, or use directly the `.\.venv\Scripts\python.exe` etcblabliblablooo...) 
+
+## config-ing
 
 For CLI parameters check `Params.py`, it should support
 ```
