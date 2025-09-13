@@ -42,6 +42,9 @@ class Wave:
     def write(self, filename: str):
         sf.write(filename, self.data, self.samplerate)
 
+    def reset_data(self):
+        self.data = np.copy(self.original)
+
     def extend_to(self, seconds: float):
         new_frames = int(seconds * self.samplerate)
         if self.is_mono:

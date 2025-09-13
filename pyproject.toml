@@ -1,7 +1,8 @@
 [project]
 name = "python-reverberator"
-version = "0.1.0"
-description = "Add your description here"
+version = "1.0.0"
+description = "qm wanted to implement the Nepenthene reverb as a proof of concept"
+authors = ["qm@z10.info"]
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

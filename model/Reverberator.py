@@ -5,6 +5,7 @@ import math
 from dataclasses import dataclass
 from typing import List, Self, Callable, Optional, Any
 
+from model.Params import Params
 from model.Pseudorandom import Pseudorandom
 from model.Wave import Wave
 
@@ -18,17 +19,6 @@ class Echo:
     def amplitude_by(self, func: Callable[[int], float]) -> Self:
         self.amplitude = func(self.pos) * self.sign
         return self
-
-
-@dataclass
-class Params:
-    rt60_seconds: float
-    mix_amount: float = 0.5
-    gain: float = 1.0
-    loop_seconds: float = 1.0
-    n_echoes: int = 1000
-    use_mt19937: bool = False
-    output_seconds: Optional[float] = None
 
 
 class Reverberator:
@@ -53,15 +43,15 @@ class Reverberator:
     def __init__(self, params: Params, samplerate: int):
         self.samplerate = samplerate
         self._params = params
-        self.rt60_position = self.samplerate * params.rt60_seconds
+        self.rt60_position = self.samplerate * params.rt60_sec
 
-        self.echo_spacing = int(samplerate * params.loop_seconds / params.n_echoes)
+        self.echo_spacing = int(samplerate * params.loop_sec / params.n_echoes)
         self.loop_samples = self.echo_spacing * params.n_echoes
 
         self.echoes = [Echo() for _ in range(params.n_echoes)]
         self.recalc_echoes()
 
-        self.overall_gain = params.gain * 90. / params.n_echoes
+        self.overall_gain = params.pregain * 90. / params.n_echoes
         self.feedback_gain = self.evaluate_decay(self.loop_samples)
 
         self.pos_read = 0
