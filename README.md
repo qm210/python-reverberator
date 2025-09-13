@@ -2,9 +2,9 @@
 
 Start with `uv` via
 ```
-uv run main.py <input.wav> <output.wav>
+uv run main.py -i <input.wav> [...params...]
 ```
-Or without `uv` plainly
+If you don't have `uv`, you can plainly call python
 ```
 # linux
 ./.venv/Scripts/python main.py shortdudel.wav bla.wav
@@ -13,18 +13,25 @@ Or without `uv` plainly
 .\.venv\Scripts\python.exe main.py shortdudel.wav bla.wav
 ```
 
-And in `main.py` you can play with the parameters
-
+For CLI parameters check `Params.py`, it should support
 ```
-Params(
-    rt60_seconds = 2.10,
-    mix_amount = 0.7,
-    loop_seconds = 1.0,
-    n_echoes = 100,
-    gain = 0.85,
-    use_mt19937=False,
-    output_seconds=3,
-)
+usage: main.py [-h] [-i INPUT] [-o OUTPUT] [-d DECAY] [-m MIX] [-n ECHOES] [-g PREGAIN] [--mt-random]
+               [--loop-sec LOOP_SEC] [--auto-loop] [--out-sec OUT_SEC] [-q]
+
+options:
+  -h, --help            show this help message and exit
+  -i, --input INPUT     input .wav path to process
+  -o, --output OUTPUT   output .wav path to write
+  -d, --decay DECAY     decay time in seconds (should be ~ RT60, i.e. when levels have sunk to 60 dB of initial level)
+  -m, --mix MIX         how much of the reverb (0 = dry, 1 = wet)
+  -n, --echoes ECHOES   the amount of sample points (will be somewhat randomized), i.e. "number of echoes"
+  -g, --pregain PREGAIN
+                        scale the input by that factor beforehand
+  --mt-random           Use Mersenne-Twister 19937 for the random numbers instead of simple PCG
+  --loop-sec LOOP_SEC   how long the interal loop is, should not be much smaller than the input
+  --auto-loop           fix the loop seconds to the output seconds, might be wasteful but less sucking
+  --out-sec OUT_SEC     overwrite the seconds of the output, otherwise the original + "--loop-sec"
+  -q, --quiet           whether not to actually play the processed wave
 ```
 
-## have fun -- qm
+## have fun &ndash; recommends QM

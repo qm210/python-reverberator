@@ -43,7 +43,7 @@ class Params:
             default=default.out_file,
         )
         parser.add_argument(
-            "-d", "--decay-sec",
+            "-d", "--decay",
             help="decay time in seconds (should be ~ RT60, i.e. when levels have sunk to 60 dB of initial level)",
             type=float,
             default=default.rt60_sec,
@@ -75,15 +75,15 @@ class Params:
             "--loop-sec",
             help="how long the interal loop is, should not be much smaller than the input",
             type=float,
-            default=default.loop_sec,
+            default=None,
         )
         parser.add_argument(
-            "--auto-loop-sec",
+            "--auto-loop",
             help="fix the loop seconds to the output seconds, might be wasteful but less sucking",
             action="store_true"
         )
         parser.add_argument(
-            "--output-sec",
+            "--out-sec",
             help="overwrite the seconds of the output, otherwise the original + \"--loop-sec\"",
             type=float,
             default=None,
@@ -97,14 +97,14 @@ class Params:
         result = cls(
             in_file=args.input,
             out_file=args.output,
-            rt60_sec=args.decay_sec,
+            rt60_sec=args.decay,
             mix_amount=args.mix,
             pregain=args.pregain,
             n_echoes=args.echoes,
             use_mt19937=args.mt_random,
-            output_sec=args.output_sec,
+            output_sec=args.out_sec,
             loop_sec=args.loop_sec,
-            auto_loop_sec=args.auto_loop_sec,
+            auto_loop_sec=args.loop_sec is None or args.auto_loop,
             dont_play=args.quiet,
         )
         return replace(result, **overwrites)

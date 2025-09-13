@@ -1,4 +1,5 @@
 import time
+from pprint import pprint
 
 from audio import play, print_device_info
 from model.Reverberator import Reverberator
@@ -9,11 +10,12 @@ from model.Wave import Wave
 def load_and_reverberate(params: Params) -> Wave:
     print("Loading", params.in_file)
     wave = Wave(params.in_file)
-    print(f"Wave has originally {wave.seconds} seconds and values in {wave.original_range}")
+    print(f"Wave has originally {wave.seconds} seconds and values in {wave.original_range}. Params:")
     params.maybe_adjust(wave)
+    pprint(params)
 
     reverberator = Reverberator(params, wave.samplerate)
-    print("Hello Reverberator.", params)
+    print("Reverberator spawned, now doing its job...")
     t0 = time.perf_counter()
     reverberator.apply(wave)
     t1 = time.perf_counter()
@@ -22,10 +24,10 @@ def load_and_reverberate(params: Params) -> Wave:
 
 
 if __name__ == "__main__":
-    print_device_info()
     args = Params.from_cli(in_file="shortdudel.wav")
     sample = load_and_reverberate(args)
     sample.write(args.out_file)
     if not args.dont_play:
+        print_device_info()
         play(sample)
     print("Wirsing.")

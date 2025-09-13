@@ -1,5 +1,4 @@
 import time
-from pprint import pprint
 
 import keyboard
 import simpleaudio as sa
@@ -23,10 +22,13 @@ def play(wave: Wave):
             break
         time.sleep(0.1)
     player.stop()
+    time.sleep(0.5)
 
 
 def print_device_info():
     default_out = sd.default.device[1]
-    device_info = sd.query_devices(default_out)
-    print("Sound Output Device:")
-    pprint(device_info)
+    info = sd.query_devices(default_out)
+    print(
+        "Sound Output Device:", info['name'],
+        "- Max Output Channels", info['max_output_channels']
+    )
