@@ -25,7 +25,7 @@ class Reverberator:
     # working state
     pos_read: int
     pos_fb: int
-    data: List[float]
+    workdata: List[float]
     output: Optional[npt.NDArray[np.float32]]
     echoes: List[Echo]
 
@@ -56,7 +56,7 @@ class Reverberator:
 
         self.pos_read = 0
         self.pos_fb = self.loop_samples
-        self.data = []
+        self.workdata = []
         self.output = None
 
     def recalc_echoes(self):
@@ -75,6 +75,8 @@ class Reverberator:
 
     def apply(self, wave: Wave):
         size = 2 * self.loop_samples
+        size = min(size, len(wave.data))
+        print(f"Compare Wave Data {np.shape(wave.data)} to Twice-Loop-Length {2 * self.loop_samples} -> {size}")
         if wave.is_mono:
             self.evaluate_mono(wave, size)
         else:
@@ -82,33 +84,33 @@ class Reverberator:
         wave.data = self.mix(wave.data, self.output)
 
     def evaluate_mono(self, wave: Wave, datasize: int):
-        self.data = wave.zeros(length=datasize)
+        self.workdata = wave.zeros(length=datasize)
         for echo in self.echoes:
             gain = echo.amplitude * self.overall_gain
             pos = (self.pos_read + echo.pos) % datasize
             for input in wave.data:
-                self.data[pos] += gain * input
+                self.workdata[pos] += gain * input
                 pos = (pos + 1) % datasize
 
         self.output = wave.zeros()
         for s in range(len(self.output)):
-            self.output[s] = self.data[self.pos_read]
-            self.data[self.pos_read] = 0
+            self.output[s] = self.workdata[self.pos_read]
+            self.workdata[self.pos_read] = 0
             self.pos_read = (self.pos_read + 1) % datasize
-            self.data[self.pos_fb] += self.output[s] * self.feedback_gain
+            self.workdata[self.pos_fb] += self.output[s] * self.feedback_gain
             self.pos_fb = (self.pos_fb + 1) % datasize
 
     def evaluate_numpyed(self, wave: Wave, datasize: int):
-        self.data = wave.zeros(length=datasize)
+        self.workdata = wave.zeros(length=datasize)
         for echo in self.echoes:
             gain = echo.amplitude * self.overall_gain
             pos = (self.pos_read + echo.pos) % datasize
             shifted = np.roll(wave.data, pos)
-            self.data[:datasize] += gain * shifted[:datasize]
+            self.workdata[:datasize] += gain * shifted[:datasize]
 
         self.output = wave.zeros()
         idx_read = (np.arange(len(self.output)) + self.pos_read) % datasize
         idx_fb = (np.arange(len(self.output)) + self.pos_fb) % datasize
-        self.output[:] = self.data[idx_read]
-        self.data[idx_read] = 0
-        self.data[idx_fb] += self.output * self.feedback_gain
+        self.output[:] = self.workdata[idx_read]
+        self.workdata[idx_read] = 0
+        self.workdata[idx_fb] += self.output * self.feedback_gain

@@ -1,7 +1,9 @@
 import argparse
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Optional
+
+from model.Wave import Wave
 
 
 @dataclass
@@ -16,9 +18,18 @@ class Params:
     use_mt19937: bool = False
     output_sec: Optional[float] = None
     loop_sec: float = 1.0
+    auto_loop_sec: float = False
+
+    def maybe_adjust(self, wave: Wave) -> None:
+        if self.auto_loop_sec:
+            self.loop_sec = self.output_sec or wave.seconds
+        if self.output_sec is not None:
+            wave.extend_to(self.output_sec)
+        else:
+            self.output_sec = wave.seconds
 
     @classmethod
-    def from_cli(cls):
+    def from_cli(cls, **overwrites):
         parser = argparse.ArgumentParser()
         default = cls()
         parser.add_argument(
@@ -67,6 +78,11 @@ class Params:
             default=default.loop_sec,
         )
         parser.add_argument(
+            "--auto-loop-sec",
+            help="fix the loop seconds to the output seconds, might be wasteful but less sucking",
+            action="store_true"
+        )
+        parser.add_argument(
             "--output-sec",
             help="overwrite the seconds of the output, otherwise the original + \"--loop-sec\"",
             type=float,
@@ -78,7 +94,7 @@ class Params:
             action="store_true",
         )
         args = parser.parse_args()
-        return cls(
+        result = cls(
             in_file=args.input,
             out_file=args.output,
             rt60_sec=args.decay_sec,
@@ -88,5 +104,7 @@ class Params:
             use_mt19937=args.mt_random,
             output_sec=args.output_sec,
             loop_sec=args.loop_sec,
+            auto_loop_sec=args.auto_loop_sec,
             dont_play=args.quiet,
         )
+        return replace(result, **overwrites)
